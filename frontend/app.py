@@ -5,7 +5,9 @@ import base64
 
 st.set_page_config(page_title="K-AI Scheme Mitra", page_icon="🏛️", layout="wide", initial_sidebar_state="expanded")
 
-API = "http://127.0.0.1:8000"
+# API = "http://127.0.0.1:8000"
+API = "https://mitra-ee9p.onrender.com"
+
 LANGS = {"Malayalam": "ml-IN", "English (India)": "en-IN", "Hindi": "hi-IN", "Tamil": "ta-IN", "Telugu": "te-IN", "Kannada": "kn-IN"}
 SPEAKERS = {"Anila (Female)": "anila", "Shubh (Male)": "shubh", "Advika (Female)": "advika", "Mansi (Female)": "mansi"}
 DISTRICTS = ["Thiruvananthapuram", "Kollam", "Pathanamthitta", "Alappuzha", "Kottayam", "Idukki", "Ernakulam", "Thrissur", "Palakkad", "Malappuram", "Kozhikode", "Wayanad", "Kannur", "Kasaragod"]
