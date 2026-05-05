@@ -114,7 +114,7 @@ if not st.session_state.authenticated:
                 else:
                     with st.spinner("Signing in..."):
                         try:
-                            r = requests.post(f"{API}/auth/login", json={"username":login_user,"password":login_pass}, timeout=10)
+                            r = requests.post(f"{API}/auth/login", json={"username":login_user,"password":login_pass}, timeout=120)
                             if r.status_code==200 and r.json().get("success"):
                                 st.session_state.authenticated = True
                                 st.session_state.username = login_user
@@ -246,7 +246,7 @@ def render_scheme_cards(scheme_list, show_category_tag=True):
                 if st.button(f"🪄 Generate AI Application Guide", key=f"btn_{scheme['name']}", use_container_width=True):
                     with st.spinner("🧠 Gemini is analyzing..."):
                         try:
-                            r = requests.post(f"{API}/scheme-guide", json={"user":st.session_state.profile, "scheme":scheme}, timeout=45)
+                            r = requests.post(f"{API}/scheme-guide", json={"user":st.session_state.profile, "scheme":scheme}, timeout=120)
                             if r.status_code==200 and r.json().get("success"):
                                 st.session_state.scheme_guides[guide_key] = r.json()["ai_output"]
                                 st.rerun()
@@ -268,7 +268,7 @@ def do_tts(text, key_prefix):
         with st.spinner("🔊 Generating voice..."):
             try:
                 clean = text.replace("**","").replace("*","").replace("#","")[:2500]
-                r = requests.post(f"{API}/voice/tts", json={"text":clean,"language":LANGS[lang],"speaker":SPEAKERS[spk]}, timeout=30)
+                r = requests.post(f"{API}/voice/tts", json={"text":clean,"language":LANGS[lang],"speaker":SPEAKERS[spk]}, timeout=120)
                 if r.status_code==200 and r.json().get("success"):
                     st.audio(base64.b64decode(r.json()["audio_base64"]), format="audio/wav")
                 else: st.warning(f"TTS: {r.json().get('error','Failed')}")
@@ -281,7 +281,7 @@ def do_translate(text, key_prefix):
     if st.button("🌐 Translate", key=f"{key_prefix}_tr", use_container_width=True):
         with st.spinner("Translating..."):
             try:
-                r = requests.post(f"{API}/translate", json={"text":text[:5000],"source_language":LANGS[sl],"target_language":LANGS[tl]}, timeout=30)
+                r = requests.post(f"{API}/translate", json={"text":text[:5000],"source_language":LANGS[sl],"target_language":LANGS[tl]}, timeout=120)
                 if r.status_code==200 and r.json().get("success"):
                     st.markdown(f'<div class="ai-output-box">{r.json()["translated_text"]}</div>', unsafe_allow_html=True)
                 else: st.warning(f"Translation: {r.json().get('error','Failed')}")
@@ -399,7 +399,7 @@ elif st.session_state.current_page == "search":
             with st.spinner("🧠 AI is analyzing your eligibility and ranking schemes..."):
                 try:
                     payload = {"email":email,"phone":phone,"income":income,"category":category.upper(),"district":district,"age":age,"gender":gender,"occupation":occupation,"education":education,"disability":disability,"marital_status":marital_status}
-                    r = requests.post(f"{API}/analyze", json=payload, timeout=60)
+                    r = requests.post(f"{API}/analyze", json=payload, timeout=120)
                     if r.status_code==200:
                         st.session_state.analysis_results = r.json(); st.session_state.scan_results = None; st.session_state.ai_roadmap = None
                         
@@ -439,7 +439,7 @@ elif st.session_state.current_page == "search":
                             if ov_inc>0: fd["income"]=str(ov_inc)
                             if ov_cat!="-- Use Scanned --": fd["category"]=ov_cat
                             if ov_dist!="-- Use Scanned --": fd["district"]=ov_dist
-                            r = requests.post(f"{API}/upload", files=files, data=fd, timeout=60)
+                            r = requests.post(f"{API}/upload", files=files, data=fd, timeout=120)
                             if r.status_code==200:
                                 st.session_state.analysis_results = r.json()
                                 st.session_state.scan_results = r.json().get("scan_results",{})
@@ -492,7 +492,7 @@ elif st.session_state.current_page == "search":
                     if st.button("📝 Transcribe", key="stt_btn", use_container_width=True):
                         with st.spinner("🎙️ Transcribing..."):
                             try:
-                                r = requests.post(f"{API}/voice/stt", files={"file":("audio.wav",audio_input.getvalue(),"audio/wav")}, data={"language":LANGS[stt_lang]}, timeout=30)
+                                r = requests.post(f"{API}/voice/stt", files={"file":("audio.wav",audio_input.getvalue(),"audio/wav")}, data={"language":LANGS[stt_lang]}, timeout=120)
                                 if r.status_code==200 and r.json().get("success"):
                                     st.session_state.voice_transcript = r.json()["transcript"]; st.rerun()
                                 else: st.error(f"STT: {r.json().get('error','Failed')}")
@@ -501,10 +501,10 @@ elif st.session_state.current_page == "search":
                     if st.button("🧠 Speak & Auto-Fill", key="autofill_btn", use_container_width=True):
                         with st.spinner("🎙️ Transcribing & extracting profile..."):
                             try:
-                                r = requests.post(f"{API}/voice/stt", files={"file":("audio.wav",audio_input.getvalue(),"audio/wav")}, data={"language":LANGS[stt_lang]}, timeout=30)
+                                r = requests.post(f"{API}/voice/stt", files={"file":("audio.wav",audio_input.getvalue(),"audio/wav")}, data={"language":LANGS[stt_lang]}, timeout=120)
                                 if r.status_code==200 and r.json().get("success"):
                                     transcript = r.json()["transcript"]; st.session_state.voice_transcript = transcript
-                                    r2 = requests.post(f"{API}/voice/parse", json={"transcript":transcript}, timeout=30)
+                                    r2 = requests.post(f"{API}/voice/parse", json={"transcript":transcript}, timeout=120)
                                     if r2.status_code==200:
                                         parsed = r2.json().get("parsed_profile",{})
                                         st.success(f"✅ Extracted: Income=₹{parsed.get('income',0):,}, Category={parsed.get('category','')}, District={parsed.get('district','')}")
@@ -513,7 +513,7 @@ elif st.session_state.current_page == "search":
                                             st.session_state.profile[k] = v
                                         
                                         if parsed.get("income",0)>0 or parsed.get("category","") or parsed.get("district",""):
-                                            r3 = requests.post(f"{API}/analyze", json={"income":parsed.get("income",0),"category":parsed.get("category","").upper(),"district":parsed.get("district","")}, timeout=60)
+                                            r3 = requests.post(f"{API}/analyze", json={"income":parsed.get("income",0),"category":parsed.get("category","").upper(),"district":parsed.get("district","")}, timeout=120)
                                             if r3.status_code==200:
                                                 st.session_state.analysis_results = r3.json(); st.session_state.scan_results = None
                                 else: st.error(f"STT: {r.json().get('error','Failed')}")
@@ -574,7 +574,7 @@ elif st.session_state.current_page == "search":
 elif st.session_state.current_page == "compare":
     st.markdown("""<div class="section-header"><div class="section-icon" style="background:rgba(245,158,11,0.15);">📊</div><div><div class="section-title">Compare Schemes</div><div class="section-subtitle">Side-by-side comparison with AI analysis</div></div></div>""", unsafe_allow_html=True)
     try:
-        sr = requests.get(f"{API}/schemes", timeout=5)
+        sr = requests.get(f"{API}/schemes", timeout=120)
         if sr.status_code==200:
             all_scheme_names = []
             for cat,items in sr.json()["categories"].items():
@@ -593,7 +593,7 @@ elif st.session_state.current_page == "compare":
                     with st.spinner("🤖 AI is comparing schemes..."):
                         try:
                             # Direct request to avoid silent failures
-                            r = requests.post(f"{API}/compare", json={"scheme_a":sa,"scheme_b":sb,"income":cmp_inc,"category":cmp_cat,"district":cmp_dist}, timeout=60)
+                            r = requests.post(f"{API}/compare", json={"scheme_a":sa,"scheme_b":sb,"income":cmp_inc,"category":cmp_cat,"district":cmp_dist}, timeout=120)
                             if r.status_code == 200 and r.json().get("success"):
                                 st.session_state.compare_result = r.json()
                                 st.rerun()
@@ -649,7 +649,7 @@ elif st.session_state.current_page == "chatbot":
         if chat_audio and st.button("📝 Send Voice Question", key="chat_voice_send", use_container_width=True):
             with st.spinner("🎙️ Transcribing & asking AI..."):
                 try:
-                    r = requests.post(f"{API}/voice/stt", files={"file":("audio.wav",chat_audio.getvalue(),"audio/wav")}, data={"language":LANGS[chat_stt_lang]}, timeout=30)
+                    r = requests.post(f"{API}/voice/stt", files={"file":("audio.wav",chat_audio.getvalue(),"audio/wav")}, data={"language":LANGS[chat_stt_lang]}, timeout=120)
                     if r.status_code==200 and r.json().get("success"):
                         voice_q = r.json()["transcript"]
                         st.session_state.chat_history.append({"role":"user","content":f"🎙️ {voice_q}"})
@@ -657,7 +657,7 @@ elif st.session_state.current_page == "chatbot":
                         if chat_income>0: payload["income"] = chat_income
                         if chat_cat: payload["category"] = chat_cat
                         if chat_dist: payload["district"] = chat_dist
-                        r2 = requests.post(f"{API}/chat", json=payload, timeout=60)
+                        r2 = requests.post(f"{API}/chat", json=payload, timeout=120)
                         if r2.status_code==200:
                             st.session_state.chat_history.append({"role":"ai","content":r2.json().get("response","Sorry, couldn't process.")})
                         st.rerun()
@@ -672,7 +672,7 @@ elif st.session_state.current_page == "chatbot":
                 with st.spinner("🔊 Generating voice..."):
                     try:
                         clean = msg["content"].replace("**","").replace("*","").replace("#","")[:2500]
-                        r = requests.post(f"{API}/voice/tts", json={"text":clean,"language":"ml-IN","speaker":"anila"}, timeout=30)
+                        r = requests.post(f"{API}/voice/tts", json={"text":clean,"language":"ml-IN","speaker":"anila"}, timeout=120)
                         if r.status_code==200 and r.json().get("success"):
                             st.audio(base64.b64decode(r.json()["audio_base64"]), format="audio/wav")
                     except: pass
@@ -686,7 +686,7 @@ elif st.session_state.current_page == "chatbot":
                 if chat_income>0: payload["income"] = chat_income
                 if chat_cat: payload["category"] = chat_cat
                 if chat_dist: payload["district"] = chat_dist
-                r = requests.post(f"{API}/chat", json=payload, timeout=60)
+                r = requests.post(f"{API}/chat", json=payload, timeout=120)
                 if r.status_code==200:
                     st.session_state.chat_history.append({"role":"ai","content":r.json().get("response","Sorry, something went wrong.")})
                 else:
@@ -707,7 +707,7 @@ elif st.session_state.current_page == "notifications":
     st.markdown("""<div class="section-header"><div class="section-icon" style="background:rgba(245,158,11,0.15);">🔔</div><div><div class="section-title">Notifications</div><div class="section-subtitle">Upcoming deadlines & recently added schemes</div></div></div>""", unsafe_allow_html=True)
 
     try:
-        nr = requests.get(f"{API}/notifications", timeout=5)
+        nr = requests.get(f"{API}/notifications", timeout=120)
         if nr.status_code==200:
             notifs = nr.json().get("notifications",[])
             if notifs:
@@ -772,7 +772,7 @@ elif st.session_state.current_page == "settings":
         if st.button("🗑️ Delete Stored Data", use_container_width=True, key="del_data_btn"):
             with st.spinner("Deleting stored data..."):
                 try:
-                    r = requests.delete(f"{API}/profile/delete/{st.session_state.username}", timeout=30)
+                    r = requests.delete(f"{API}/profile/delete/{st.session_state.username}", timeout=120)
                     if r.status_code==200:
                         st.session_state.profile = {}
                         st.success("✅ All personal data deleted from our servers.")
