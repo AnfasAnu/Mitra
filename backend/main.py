@@ -7,6 +7,10 @@ from typing import Optional, List
 from datetime import datetime, timedelta
 import traceback
 
+from fastapi.middleware.cors import CORSMiddleware
+
+
+
 from function.profile_builder import build_profile
 from function.matcher import match_schemes
 from function.gemini_service import (
@@ -23,6 +27,14 @@ from function.voice_service import speech_to_text, text_to_speech, translate_tex
 from database import init_db, create_user, verify_user, save_profile, load_profile, delete_profile, save_preferences, load_preferences
 
 app = FastAPI(title="Kerala Scheme Navigator")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # later restrict
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 def startup_event():
